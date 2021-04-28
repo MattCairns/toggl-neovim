@@ -3,7 +3,7 @@ fun! TogglTracker()
     lua require("toggl-tracker").createFloatingWindow()
 endfun
 
-let g:toggl_api_key = 12345
+let g:toggl_api_key = "fe804de4d159f7d1af977d0183879319" 
 augroup TogglTracker
     autocmd!
     autocmd VimResized * :lua require("toggl-tracker").onResize()

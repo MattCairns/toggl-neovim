@@ -1,9 +1,13 @@
+json = require "json"
+
 local function getDataTest(bufh)
-    local result = vim.fn.systemlist('ls -lah')
-    for k,v in pairs(result) do
-        result[k] = '  '..result[k]
-    end
-    vim.api.nvim_buf_set_lines(bufh, 0, -1, false, result)
+    local result = vim.fn.systemlist("curl -s -u fe804de4d159f7d1af977d0183879319:api_token -X GET https://api.track.toggl.com/api/v8/time_entries/current")
+    local json = json.decode(result[1])
+
+    local output = { json.data.description .. " -- " .. json.data.start }
+
+    vim.api.nvim_buf_set_lines(bufh, 0, -1, false, output)
+    vim.api.nvim_buf_set_option(bufh, 'modifiable', false)
 end
 
 local function createFloatingWindow()
@@ -13,9 +17,8 @@ local function createFloatingWindow()
     bufh = vim.api.nvim_create_buf(false, true)
     vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
-    local scaling_factor = 0.4
-    local win_height = math.ceil(height * scaling_factor - 4)
-    local win_width = math.ceil(width * scaling_factor)
+    local win_height = math.ceil(height * 0.4 - 4)
+    local win_width = math.ceil(width * 0.8)
 
     local row = math.ceil((height - win_height) / 2 - 1)
     local col = math.ceil((width - win_width) / 2 )
@@ -32,13 +35,12 @@ local function createFloatingWindow()
 
     getDataTest(bufh)
 end
-    
+
 
 local function onResize()
     local stats = vim.api.nvim_list_uis()[1]
     local width = stats.width
     local height = stats.height
-    print(width, height)
 end
 
 return {

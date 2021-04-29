@@ -20,6 +20,7 @@ local function getCurrentTimer(bufh)
 
         local output = { json.data.description .. " -- " .. json.data.start }
 
+        print(output[1])
         return output
     end
 end
@@ -67,7 +68,7 @@ local function createFloatingWindow()
     a = getCurrentTimer(bufh)
     b = getLatestTimeEntries(bufh)
 
-    r = TableConcat(a,b)
+    r = concatTable(a,b)
 
     vim.api.nvim_buf_set_lines(bufh, 0, -1, false, r)
     vim.api.nvim_buf_set_option(bufh, 'modifiable', false)       

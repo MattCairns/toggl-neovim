@@ -11,34 +11,36 @@ function concatTable(t1,t2)
     return t1
 end
 
-local function getCurrentTimer(bufh)
-    local api_key = vim.g["toggl_api_key"]
-    local request = string.format("curl -s -u %s:api_token -X GET https://api.track.toggl.com/api/v8/time_entries/current", api_key)
-    local result = vim.fn.systemlist(request)
-    if result[1] ~= '' and result[1] ~= nil then
-        local json = json.decode(result[1])
+function timeFromDuration(time)
 
-        local output = { json.data.description .. " -- " .. json.data.start }
-
-        print(output[1])
-        return output
-    end
+    local days = math.floor(time/86400)
+    local hours = math.floor((time % 86400)/3600) 
+    local minutes = math.floor((time % 3600)/60)
+    local seconds = math.floor((time % 60))
+    return string.format("%d:%02d:%02d:%02d",days,hours,minutes,seconds)
 end
 
 local function getLatestTimeEntries(bufh)
     local api_key = vim.g["toggl_api_key"]
     local request = string.format("curl -s -u %s:api_token -X GET https://api.track.toggl.com/api/v8/time_entries", api_key)
     local result = vim.fn.systemlist(request)
-    print(result[1])
-
-    for k, v in pairs(result) do
-        print(k)
-    end
 
     if result[1] ~= '' and result[1] ~= nil then
         local json = json.decode(result[1])
+        local json_rev = {}
 
-        return result
+        for i=1, #json do
+            table.insert(json_rev, json[#json + 1 -i])
+        end
+
+        local tbl = {}
+        time = json_rev[1].duration + os.time(os.date("!*t"))
+        table.insert(tbl, json_rev[1].description .. "\t\t\t" .. timeFromDuration(time))
+        for i = 2, #json_rev do
+            table.insert(tbl, json_rev[i].description .. "\t\t\t" .. timeFromDuration(json_rev[i].duration))
+        end
+
+        return tbl
     end   
 end
 
@@ -65,12 +67,12 @@ local function createFloatingWindow()
         row = row,
     })
 
-    a = getCurrentTimer(bufh)
+    -- a = getCurrentTimer(bufh)
     b = getLatestTimeEntries(bufh)
 
-    r = concatTable(a,b)
+    -- r = concatTable(a,b)
 
-    vim.api.nvim_buf_set_lines(bufh, 0, -1, false, r)
+    vim.api.nvim_buf_set_lines(bufh, 0, -1, false, b)
     vim.api.nvim_buf_set_option(bufh, 'modifiable', false)       
 end
 

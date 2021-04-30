@@ -12,12 +12,22 @@ function concatTable(t1,t2)
 end
 
 function timeFromDuration(time)
-
     local days = math.floor(time/86400)
     local hours = math.floor((time % 86400)/3600) 
     local minutes = math.floor((time % 3600)/60)
     local seconds = math.floor((time % 60))
     return string.format("%d:%02d:%02d:%02d",days,hours,minutes,seconds)
+end
+
+function matchStringToLen(str, len)
+    print(str)
+    if string.len(str) > len then
+       return str
+    end
+    while string.len(str) < len do
+        str = str .. " "  
+    end
+    return str
 end
 
 local function getLatestTimeEntries(bufh)
@@ -29,15 +39,19 @@ local function getLatestTimeEntries(bufh)
         local json = json.decode(result[1])
         local json_rev = {}
 
+        local longest_str = 0
         for i=1, #json do
             table.insert(json_rev, json[#json + 1 -i])
+            if longest_str < string.len(json[i].description) then
+                longest_str = string.len(json[i].description)
+            end
         end
 
         local tbl = {}
         time = json_rev[1].duration + os.time(os.date("!*t"))
-        table.insert(tbl, json_rev[1].description .. "\t\t\t" .. timeFromDuration(time))
+        table.insert(tbl, "  "..matchStringToLen(json_rev[1].description, longest_str) .. "\t\t\t" .. timeFromDuration(time))
         for i = 2, #json_rev do
-            table.insert(tbl, json_rev[i].description .. "\t\t\t" .. timeFromDuration(json_rev[i].duration))
+            table.insert(tbl, "  "..matchStringToLen(json_rev[i].description, longest_str) .. "\t\t\t" .. timeFromDuration(json_rev[i].duration))
         end
 
         return tbl
@@ -49,7 +63,7 @@ local function createFloatingWindow()
     local height = vim.api.nvim_get_option("lines")
 
     bufh = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_option(buf, "bufhidden", "wipe")
+    -- vim.api.nvim_buf_set_option(buf, "buftype", "prompt")
 
     local win_height = math.ceil(height * 0.4 - 4)
     local win_width = math.ceil(width * 0.3)
@@ -73,7 +87,7 @@ local function createFloatingWindow()
     -- r = concatTable(a,b)
 
     vim.api.nvim_buf_set_lines(bufh, 0, -1, false, b)
-    vim.api.nvim_buf_set_option(bufh, 'modifiable', false)       
+    vim.api.nvim_buf_set_option(bufh, 'modifiable', true)       
 end
 
 

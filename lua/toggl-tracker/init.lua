@@ -20,7 +20,6 @@ function timeFromDuration(time)
 end
 
 function matchStringToLen(str, len)
-    print(str)
     if string.len(str) > len then
        return str
     end
@@ -59,6 +58,9 @@ local function getLatestTimeEntries(bufh)
 end
 
 local function createFloatingWindow()
+    local colors = vim.fn.getcompletion('', 'color')
+    print(colors)
+    for i,v in ipairs(colors) do print(i,v) end
     local width = vim.api.nvim_get_option("columns")
     local height = vim.api.nvim_get_option("lines")
 
@@ -83,11 +85,14 @@ local function createFloatingWindow()
 
     -- a = getCurrentTimer(bufh)
     b = getLatestTimeEntries(bufh)
-
     -- r = concatTable(a,b)
 
     vim.api.nvim_buf_set_lines(bufh, 0, -1, false, b)
     vim.api.nvim_buf_set_option(bufh, 'modifiable', true)       
+    vim.api.nvim_buf_add_highlight(bufh, -1, "WarningMsg", 0, 0, -1) 
+    for i=1, #b, 1 do
+        vim.api.nvim_buf_add_highlight(bufh, -1, "Character", i, 0, -1) 
+    end
 end
 
 
